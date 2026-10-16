@@ -16,6 +16,7 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `npx playwright install chromium` in `frontend` | Installed actual Chromium for browser verification. |
 | `npm run test:browser` in `frontend` | Actual load → investigate → inspect → preview → commit → execute → explain → replay journey passed; screenshots saved. Repeated against the production Compose UI. |
 | `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m app.evaluation` | Completed 30 real-graph runs, generated actual JSON/CSV; deterministic policies only. |
+| `docker compose exec backend python -m app.evaluation` | Repeated the entire 30-run suite inside Linux Docker. Same per-world utilities and aggregate results; copied final JSON/CSV to the repository. |
 | `docker compose build` | Both Linux backend and frontend images built; OR-Tools installed and frontend production assets compiled inside Docker. |
 | `docker compose up -d --wait` | All LastMile services started; frontend HTTP 200 and graph-capable backend health passed. |
 | `.venv\Scripts\python.exe scripts\verify_restart.py` | Real backend restart, real DB outage, DB restart and private-checkpoint continuation checks passed. |

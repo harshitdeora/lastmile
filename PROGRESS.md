@@ -25,8 +25,10 @@
 - Real Docker backend restart, DB outage/503, DB restart and private checkpoint continuation passed.
 - 30-run suite completed: mean delivered utility 27.2 / 30.4 / 72.0 for none / random / graph value. All rows and ties/regressions retained.
 - Exact commands and acceptance mapping: docs/verification.md.
+- Full 30-run suite repeated inside Linux Docker with identical per-world utilities; final output exported to benchmarks/.
+- Source, screenshots, documentation and CI pushed to public origin/main; GitHub metadata and remote commit verified.
 
 ## Remaining limits / participant steps
 - Live provider smoke test unavailable without OPENAI_API_KEY and OPENAI_MODEL; stubbed adapter tests are not live evidence.
 - Participant must review, understand and meaningfully contribute, record the demo video and submit. No external deployment or video claimed.
-- Final Git push and remote verification follow the completed local checks.
+- GitHub Actions is configured; remote workflow status is visible in the repository Actions tab.
