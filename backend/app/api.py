@@ -17,6 +17,7 @@ from .lease import acquire_process_lease
 from .evaluation import benchmark, RESULT_DIR
 from .agents import tool_definitions
 from .tool_outputs import OUTPUTS
+from .simulator import CheckpointUnavailable
 
 ops = Operations()
 benchmark_state = {"status": "idle"}
@@ -54,6 +55,14 @@ def graph_error(request: Request, exc):
 def conflict_error(request: Request, exc):
     return JSONResponse(
         status_code=409, content={"error": str(exc), "code": "CONFLICT"}
+    )
+
+
+@app.exception_handler(CheckpointUnavailable)
+def checkpoint_error(request: Request, exc):
+    return JSONResponse(
+        status_code=503,
+        content={"error": str(exc), "code": "CHECKPOINT_UNAVAILABLE", "stale": True},
     )
 
 

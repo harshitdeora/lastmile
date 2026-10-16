@@ -20,7 +20,7 @@
 - Docker Desktop 29.2.1 and FalkorDB 4.16.0 verified. Owned service ports: 5173, 8000, 6380, all localhost-bound.
 
 ## Verification
-- 23 real-database backend tests passed; production frontend build passed locally and in Docker.
+- 24 real-database backend tests passed; production frontend build passed locally and in Docker.
 - Chromium journey passed at desktop and 390-pixel viewport; screenshots saved.
 - Real Docker backend restart, DB outage/503, DB restart and private checkpoint continuation passed.
 - 30-run suite completed: mean delivered utility 27.2 / 30.4 / 72.0 for none / random / graph value. All rows and ties/regressions retained.

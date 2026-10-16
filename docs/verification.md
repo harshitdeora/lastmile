@@ -10,7 +10,7 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `docker pull falkordb/falkordb:v4.16.0` | Pulled and recorded immutable digest used in Compose. |
 | `.venv\Scripts\python.exe -m pip install -r backend\requirements.txt` | Installed in Python 3.12.14; exact resolved versions frozen in lockfile. |
 | `docker compose up -d falkordb` | Real FalkorDB started at localhost:6380. Port 6379 was already used by another project and was preserved. |
-| `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m pytest backend\tests -q` | **23 passed** in 67.01 seconds. One upstream Starlette/AnyIO deprecation warning; no failed checks. |
+| `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m pytest backend\tests -q` | **24 passed** in 69.67 seconds. One upstream Starlette/AnyIO deprecation warning; no failed checks. |
 | `npm install --no-audit --no-fund` in `frontend` | Installed pinned packages and generated package-lock.json. |
 | `npm run build` in `frontend` | TypeScript and Vite production build passed. |
 | `npx playwright install chromium` in `frontend` | Installed actual Chromium for browser verification. |
@@ -41,6 +41,7 @@ An initial build found a CSS import issue and was fixed before the passing produ
 | Stale plan rejected | Changed graph revision returns conflict before allocation. |
 | Disruption / loaded recovery | Unstarted release, loaded/current state preserved, blocked inventory reused with zero new allocation; entered segment may finish. |
 | Restart and browser refresh | Unit/integration resume equality, real Docker restart script, browser refresh retains 42 kits / budget 1. |
+| Missing private checkpoint | Actionable HTTP 503 instructs volume restoration; attempted time advance leaves graph state identical. |
 | Fair benchmark | Initial fingerprints equal; immutable physical checkpoint equality tested; independent policy RNG; separate graphs. |
 | Live LLM invokes provider | **UNVERIFIED / unavailable**: no key/model configured. Protocol and provider-failure tests use stubs and are labelled accordingly. |
 | Deterministic mode | Real end-to-end operation without credentials, visible label and recorded tool calls. |

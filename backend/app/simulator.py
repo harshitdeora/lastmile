@@ -10,6 +10,10 @@ from pathlib import Path
 from random import Random
 
 
+class CheckpointUnavailable(RuntimeError):
+    pass
+
+
 class Simulator:
     def __init__(self, directory: str | None = None):
         self.directory = Path(directory or os.getenv("PRIVATE_STATE_DIR", ".private"))
@@ -41,7 +45,7 @@ class Simulator:
         try:
             return json.loads(self._file(run_id).read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
-            raise RuntimeError(
+            raise CheckpointUnavailable(
                 "Private simulator checkpoint missing; restore its volume or explicitly reset this run"
             ) from exc
 

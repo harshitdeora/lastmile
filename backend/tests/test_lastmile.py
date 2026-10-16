@@ -490,3 +490,20 @@ def test_http_degraded_state_and_failed_mutation(monkeypatch, ops):
         f"/api/runs/{rid}/advance", json={"minutes": 1, "key": "offline"}
     )
     assert response.status_code == 503
+
+
+def test_missing_private_checkpoint_is_actionable_and_does_not_mutate(monkeypatch, ops):
+    from fastapi.testclient import TestClient
+    from app import api
+
+    rid = ops.create()["id"]
+    before = ops.context(rid)
+    ops.simulator.remove(rid)
+    monkeypatch.setattr(api, "ops", ops)
+    response = TestClient(api.app).post(
+        f"/api/runs/{rid}/advance", json={"minutes": 1, "key": "missing-checkpoint"}
+    )
+    assert response.status_code == 503
+    assert response.json()["code"] == "CHECKPOINT_UNAVAILABLE"
+    assert "restore its volume" in response.json()["error"]
+    assert ops.context(rid) == before
