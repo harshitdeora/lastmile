@@ -1,6 +1,6 @@
 # Verification evidence
 
-Verified on Windows on October 16, 2026. No external deployment or live LLM execution is claimed.
+Verified on Windows on October 16, 2026. Live LLM execution through the existing Codex ChatGPT sign-in is verified. No external deployment is claimed.
 
 ## Commands actually run
 
@@ -10,7 +10,7 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `docker pull falkordb/falkordb:v4.16.0` | Pulled and recorded immutable digest used in Compose. |
 | `.venv\Scripts\python.exe -m pip install -r backend\requirements.txt` | Installed in Python 3.12.14; exact resolved versions frozen in lockfile. |
 | `docker compose up -d falkordb` | Real FalkorDB started at localhost:6380. Port 6379 was already used by another project and was preserved. |
-| `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m pytest backend\tests -q` | **24 passed** in 69.67 seconds. One upstream Starlette/AnyIO deprecation warning; no failed checks. |
+| `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m pytest backend\tests -q` | **29 passed** in 78.35 seconds after adding the Codex connection. One upstream Starlette/AnyIO deprecation warning; no failed checks. |
 | `npm install --no-audit --no-fund` in `frontend` | Installed pinned packages and generated package-lock.json. |
 | `npm run build` in `frontend` | TypeScript and Vite production build passed. |
 | `npm install --save-dev --save-exact vite@6.4.4 @playwright/test@1.64.1` then `npm audit --audit-level=low` | Patched the development-tool advisories discovered during container installation; **0 npm vulnerabilities** in the final lockfile. Production builds repeated successfully. |
@@ -23,6 +23,10 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `.venv\Scripts\python.exe scripts\verify_restart.py` | Real backend restart, real DB outage, DB restart and private-checkpoint continuation checks passed. |
 | `docker exec lastmile-falkordb-1 redis-cli CONFIG GET dir appendonly appendfsync save` | Confirmed `/var/lib/falkordb/data`, `yes`, `everysec`, `60 1`. |
 | `docker exec lastmile-falkordb-1 redis-cli INFO modules` | Confirmed graph module version 41600. |
+| `codex login status` and supported app-server handshake | Existing ChatGPT sign-in confirmed without reading/copying credentials. Model catalogue default resolved to gpt-6.1-sol. |
+| `scripts/start-codex.ps1` | Started local authenticated bridge and Docker; `/api/health` reports `codex_configured=true`, `api_key_configured=false`. |
+| `RUN_CODEX_LIVE=1 npx playwright test codex-live` (PowerShell environment equivalent) | Actual live browser cycle passed, selecting Codex tools and persisting outcomes. |
+| `python scripts/smoke_codex.py --run-id <explicit smoke run>` | Four total real model cycles, 18 application tool calls, six on-time deliveries / 42 kits, utility 116, one inspection, zero failed traversals. Real evidence saved to `docs/live-codex-smoke.json`. |
 
 An initial build found a CSS import issue and was fixed before the passing production builds. A degraded-state test exposed eager database connection during construction; the client now connects lazily so the API can return a structured 503. A graph-ID check led to separate `stock-d*` IDs for physical stock nodes. A recovery test was corrected to isolate the loaded vehicle because the unrestricted solver could legitimately choose a nearer fresh vehicle. A temporary Docker networking failure after a port was released was resolved by recreating the owned backend container; all final services and checks passed. These early failures are not counted as passes.
 
@@ -46,7 +50,7 @@ The final npm pins are Vite 6.4.4 and Playwright 1.64.1. See the upstream [Vite 
 | Restart and browser refresh | Unit/integration resume equality, real Docker restart script, browser refresh retains 42 kits / budget 1. |
 | Missing private checkpoint | Actionable HTTP 503 instructs volume restoration; attempted time advance leaves graph state identical. |
 | Fair benchmark | Initial fingerprints equal; immutable physical checkpoint equality tested; independent policy RNG; separate graphs. |
-| Live LLM invokes provider | **UNVERIFIED / unavailable**: no key/model configured. Protocol and provider-failure tests use stubs and are labelled accordingly. |
+| Live LLM invokes provider | **PASSED for signed-in Codex**: gpt-6.1-sol selected real dynamic tools; complete live run and browser action verified. API-key adapter remains separately unverified against a real key. |
 | Deterministic mode | Real end-to-end operation without credentials, visible label and recorded tool calls. |
 | Database outage | Actual container stopped: health and attempted mutation return 503; post-restart state unchanged. |
 | Browser journey | Real Chromium; desktop and 390×844 viewport; no page JavaScript errors or document horizontal overflow. |
@@ -60,4 +64,4 @@ Ten worlds per policy; delivered priority-weighted utility means: **27.2** no in
 
 Solver durations include the recorded baseline/branch, preview and commit solves, including graph-path retrieval time inside the pure planner call. Wall times are hardware-dependent and should not be treated as reproducible performance guarantees. `OPTIMAL` applies only to the bounded candidate formulation.
 
-Screenshots: `01-investigate-desktop.png`, `02-replay-desktop.png`, `03-mobile.png`, `04-benchmarks-desktop.png`. On small screens the map scrolls horizontally so map labels remain readable. Screenshots were visually inspected.
+Screenshots: `01-investigate-desktop.png`, `02-replay-desktop.png`, `03-mobile.png`, `04-benchmarks-desktop.png`, `05-live-codex-desktop.png`. On small screens the map scrolls horizontally so map labels remain readable. Screenshots were visually inspected.

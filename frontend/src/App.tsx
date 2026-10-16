@@ -405,7 +405,10 @@ export default function App() {
     [error, setError] = useState(""),
     [healthy, setHealthy] = useState(false),
     [llm, setLlm] = useState(false),
-    [mode, setMode] = useState("deterministic");
+    [codex, setCodex] = useState(false),
+    [mode, setMode] = useState(
+      localStorage.getItem("lastmile-controller") || "deterministic",
+    );
   const [ranking, setRanking] = useState<Ranking | null>(null),
     [plan, setPlan] = useState<Plan | null>(null),
     [detail, setDetail] = useState<unknown>(null),
@@ -424,7 +427,8 @@ export default function App() {
     ]);
     setWorld(w);
     setHealthy(true);
-    setLlm(h.llm_configured);
+    setLlm(h.api_key_configured);
+    setCodex(h.codex_configured);
     localStorage.setItem("lastmile-run", id);
     return w;
   }, []);
@@ -437,7 +441,16 @@ export default function App() {
       .then(async ([s, h, r]) => {
         setScenarios(s);
         setHealthy(true);
-        setLlm(h.llm_configured);
+        setLlm(h.api_key_configured);
+        setCodex(h.codex_configured);
+        if (!localStorage.getItem("lastmile-controller"))
+          setMode(
+            h.llm_provider === "codex"
+              ? "codex"
+              : h.llm_provider === "openai"
+                ? "llm"
+                : "deterministic",
+          );
         setRuns(r);
         const id = localStorage.getItem("lastmile-run");
         if (id && r.some((x) => x.id === id)) await refresh(id);
@@ -490,6 +503,10 @@ export default function App() {
       if (r.stopped) setAuto(false);
       setPlan(null);
       setRanking(null);
+      if (r.error || r.error_type) {
+        await refresh(world!.id);
+        throw new Error(r.error || r.summary);
+      }
     });
   }
   useEffect(() => {
@@ -532,6 +549,8 @@ export default function App() {
     return () => clearInterval(id);
   }, [benchJob]);
   const shown = replay ? snapshots[frame]?.state || world : world;
+  const controllerAvailable =
+    mode === "deterministic" || (mode === "codex" ? codex : llm);
   const disabled =
     busy || !healthy || replay || !world || world.status !== "active";
   const road = shown?.roads.find((r) => r.id === selected),
@@ -625,6 +644,7 @@ export default function App() {
               <small>
                 Frontend ready ·{" "}
                 {healthy ? "API healthy" : "state may be stale"}
+                {codex ? " · Codex connected" : ""}
               </small>
             </div>
           </div>
@@ -680,16 +700,22 @@ export default function App() {
                 aria-label="Controller mode"
                 value={mode}
                 disabled={busy || replay || auto}
-                onChange={(e) => setMode(e.target.value)}
+                onChange={(e) => {
+                  setMode(e.target.value);
+                  localStorage.setItem("lastmile-controller", e.target.value);
+                }}
               >
                 <option value="deterministic">Deterministic demo</option>
+                <option value="codex" disabled={!codex}>
+                  Codex · ChatGPT plan{!codex ? " · connect locally" : ""}
+                </option>
                 <option value="llm" disabled={!llm}>
-                  LLM agent{!llm ? " · configure key" : ""}
+                  OpenAI API{!llm ? " · configure key" : ""}
                 </option>
               </select>
               <button
                 className="button-primary"
-                disabled={disabled || auto}
+                disabled={disabled || auto || !controllerAvailable}
                 onClick={cycle}
               >
                 {busy ? (
@@ -702,7 +728,7 @@ export default function App() {
               <button
                 className="button-icon"
                 aria-label={auto ? "Pause simulation" : "Start simulation"}
-                disabled={disabled && !auto}
+                disabled={(disabled || !controllerAvailable) && !auto}
                 onClick={() => setAuto(!auto)}
               >
                 {auto ? <Pause size={17} /> : <Play size={17} />}

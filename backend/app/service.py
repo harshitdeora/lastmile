@@ -226,7 +226,10 @@ class Operations:
             if w.cycles >= 30:
                 raise Conflict("Controller cycle limit reached")
             w.cycles += 1
-            self._decision(w, mode, summary, evidence, calls=calls)
+            affected_plan = next(
+                (p.id for p in reversed(w.plans) if p.id in evidence), None
+            )
+            self._decision(w, mode, summary, evidence, plan=affected_plan, calls=calls)
 
         return self.mutate(run_id, "controller_record", uuid4().hex, action)
 

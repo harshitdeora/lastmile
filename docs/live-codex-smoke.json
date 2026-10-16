@@ -1,0 +1,111 @@
+{
+  "verified_at_utc": "2026-10-16T16:31:46.270686+00:00",
+  "provider": "Official Codex app-server",
+  "authentication": "Existing local Codex ChatGPT sign-in; no credentials copied or exported",
+  "run_id": "483c555828874f9092a6fa809c73258e",
+  "scenario": "critical_crossing",
+  "metrics": {
+    "on_time_requests": 6,
+    "delivered_kits": 42,
+    "on_time_kits": 42,
+    "utility": 116,
+    "unmet_kits": 0,
+    "inspections": 1,
+    "inspection_minutes": 5,
+    "failed_traversals": 0,
+    "replans": 1
+  },
+  "simulation_time": 45,
+  "decisions": [
+    {
+      "id": "decision-3",
+      "time": 15,
+      "summary": "One cycle completed: inspected r08 and verified it open, then committed plan `plan-e75562010db76c` for q1\u2013q6.\n\nAdvanced 10 minutes to simulation time 15. Requests q4 and q5 delivered on time: 12 kits total. No failed traversals.",
+      "evidence": [
+        "inspection-1",
+        "plan-e75562010db76c",
+        "r08"
+      ],
+      "tools": [
+        "get_operational_context",
+        "rank_inspections",
+        "inspect_road",
+        "propose_delivery_plan",
+        "commit_delivery_plan",
+        "advance_simulation"
+      ],
+      "provider": {
+        "provider": "codex_app_server",
+        "model": "gpt-6.1-sol",
+        "authentication": "Codex-managed ChatGPT sign-in",
+        "completed": true,
+        "tool_calls": 6,
+        "latency_seconds": 19.187,
+        "error": null
+      }
+    },
+    {
+      "id": "decision-4",
+      "time": 25,
+      "summary": "Advanced simulation 10 minutes to minute 25. Skipped inspection of r22: estimated gain was zero. Preview plan `plan-4dc3de88a390d5` had no new routes; existing commitments continued. No additional deliveries completed: 2 requests and 12 kits delivered overall.",
+      "evidence": [],
+      "tools": [
+        "get_operational_context",
+        "rank_inspections",
+        "propose_delivery_plan",
+        "advance_simulation"
+      ],
+      "provider": {
+        "provider": "codex_app_server",
+        "model": "gpt-6.1-sol",
+        "authentication": "Codex-managed ChatGPT sign-in",
+        "completed": true,
+        "tool_calls": 4,
+        "latency_seconds": 15.094,
+        "error": null
+      }
+    },
+    {
+      "id": "decision-5",
+      "time": 35,
+      "summary": "Advanced simulation 10 minutes to minute 35. Skipped inspection of r22: estimated gain was zero. Preview plan-6dea655c776d0d had no new routes; existing plan-e75562010db76c continued.\n\nq1, q2, and q6 arrived on time; q3 remains in transit. Totals: 34 kits delivered, five on-time requests, zero failed traversals.",
+      "evidence": [],
+      "tools": [
+        "get_operational_context",
+        "rank_inspections",
+        "propose_delivery_plan",
+        "advance_simulation"
+      ],
+      "provider": {
+        "provider": "codex_app_server",
+        "model": "gpt-6.1-sol",
+        "authentication": "Codex-managed ChatGPT sign-in",
+        "completed": true,
+        "tool_calls": 4,
+        "latency_seconds": 15.156,
+        "error": null
+      }
+    },
+    {
+      "id": "decision-6",
+      "time": 45,
+      "summary": "Advanced 10 minutes to simulation minute 45. All 6 requests are now delivered on time: 42 kits, zero unmet.\n\nSkipped inspection of r22 (zero estimated gain). Preview plan-1db681600788e6 contained no new routes; existing plan-e75562010db76c completed q3.",
+      "evidence": [],
+      "tools": [
+        "get_operational_context",
+        "rank_inspections",
+        "propose_delivery_plan",
+        "advance_simulation"
+      ],
+      "provider": {
+        "provider": "codex_app_server",
+        "model": "gpt-6.1-sol",
+        "authentication": "Codex-managed ChatGPT sign-in",
+        "completed": true,
+        "tool_calls": 4,
+        "latency_seconds": 15.047,
+        "error": null
+      }
+    }
+  ]
+}

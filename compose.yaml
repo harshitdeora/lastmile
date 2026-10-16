@@ -24,6 +24,9 @@ services:
       PRIVATE_STATE_DIR: /private
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      CODEX_BRIDGE_URL: ${CODEX_BRIDGE_URL:-}
+      CODEX_BRIDGE_TOKEN: ${CODEX_BRIDGE_TOKEN:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
     volumes:
       - simulator_data:/private
     ports:

@@ -18,6 +18,16 @@ docker compose up --build -d
 
 Open **http://localhost:5173**. API documentation: http://localhost:8000/docs. The deterministic demonstration needs no paid API or map service. FalkorDB is exposed only at **127.0.0.1:6380**, avoiding an existing Redis on 6379. Backend and frontend ports are also bound to localhost.
 
+**Use your existing Codex sign-in for live LLM control on Windows:** with Codex signed in and Python installed, run:
+
+```powershell
+.\scripts\start-codex.ps1
+```
+
+This starts the authenticated local Codex bridge and the Docker application. Select **Codex · ChatGPT plan**, create a run and click **One decision** or Play. No OpenAI API key is required for this mode. It consumes the signed-in Codex account's plan allowance. Codex manages its own credentials; LastMile never reads or copies `auth.json`. The script creates only an application-local bridge secret in ignored `.env`.
+
+**Live verification completed:** `gpt-6.1-sol` selected real application tools across four cycles, delivering all **six requests / 42 kits on time**. See [actual live-run evidence](docs/live-codex-smoke.json) and [live browser screenshot](docs/screenshots/05-live-codex-desktop.png). The separate API-key adapter remains available but was not tested against a live API key.
+
 ```powershell
 docker compose ps
 Invoke-RestMethod http://localhost:8000/api/health
@@ -47,7 +57,7 @@ Normal stop/restart retains graph and simulator volumes. Keep **both** volumes t
 - Real FalkorDB multi-hop traversal queries provide route alternatives and dependencies. Removing the graph prevents operations; there is no fallback operational database.
 - Single-process reservation and execution service. Expected revisions and idempotency keys protect commit and dispatch retries.
 - Private immutable simulator checkpoints. Road conditions and physical schedules are never placed in the operational graph, public state, tool results or frontend assets.
-- Configurable actual OpenAI Responses API tool controller, plus the explicitly labelled **Deterministic demo**.
+- Live signed-in **Codex · ChatGPT plan** controller, configurable OpenAI Responses API controller, and explicitly labelled **Deterministic demo**.
 - Three scenarios and a reproducible 30-run evaluation with JSON and CSV output.
 
 ## Architecture
@@ -63,7 +73,7 @@ flowchart LR
   Tools --> Execution[Reservation / explicit-time execution]
   Execution --> Private[Private simulator checkpoint]
   Execution --> Graph
-  LLM[Optional Responses API controller] --> Tools
+  LLM[Codex sign-in or Responses API controller] --> Tools
 ```
 
 The solver receives temporary typed snapshots and graph-derived candidate paths. These are not another authoritative graph. Replay snapshots are historical graph records and cannot be committed.
@@ -74,6 +84,10 @@ See [graph model](docs/graph-model.md), [semantics and assumptions](docs/semanti
 
 Copy `.env.example` to `.env` if configuration is needed. `.env` is ignored. Never put API credentials in frontend variables.
 
+The interface distinguishes three modes: **Codex · ChatGPT plan**, **OpenAI API**, and **Deterministic demo**. The signed-in Codex connection is selected by default when configured; deterministic benchmark policies remain separately labelled. The Codex bridge uses the documented [Codex app-server protocol](https://learn.chatgpt.com/docs/app-server), ephemeral sessions and eight registered dynamic tools. Environment, shell, browser, plugins, connected apps and multi-agent tools are disabled for these sessions. All application actions return through authenticated backend callbacks and the same validated resource/graph operations.
+
+The host bridge binds to `127.0.0.1:8866`; Docker Desktop accesses it through `host.docker.internal`. Both its cycle endpoint and backend callbacks require a generated shared application secret. No Codex access/refresh token is exported to Docker, the browser or Git. A request is bounded to 12 tools and 100 seconds; committed actions survive provider failure. This local integration was verified on Windows/Docker Desktop with Codex CLI `0.162.0-alpha.17.2`. Experimental app-server schemas can change; an incompatible CLI returns an explicit error. Hosted deployments should use their own API credentials or a separately registered supported sign-in integration.
+
 | Variable | Purpose |
 | --- | --- |
 | `FALKOR_HOST` | Host used during manual backend development; defaults to localhost. Compose uses its service name. |
@@ -82,8 +96,11 @@ Copy `.env.example` to `.env` if configuration is needed. `.env` is ignored. Nev
 | `PRIVATE_STATE_DIR` | Private simulator and process-lease directory. Compose sets `/private` on its own named volume. |
 | `OPENAI_API_KEY` | Optional server-side OpenAI API key. |
 | `OPENAI_MODEL` | Explicit model available to your account; no model name is assumed. |
+| `LLM_PROVIDER` | Initial provider preference: `codex` or `openai`. |
+| `CODEX_BRIDGE_URL` | Host bridge URL. Startup script sets `http://host.docker.internal:8866` for Docker Desktop. |
+| `CODEX_BRIDGE_TOKEN` | Generated application-local callback secret. It is not a Codex or OpenAI API credential. |
 
-For LLM mode set the last two variables in `.env`, then recreate the backend:
+For the separate **OpenAI API** mode, set `OPENAI_API_KEY` and `OPENAI_MODEL` in `.env`, then recreate the backend:
 
 ```powershell
 docker compose up -d --force-recreate backend
@@ -91,7 +108,7 @@ docker compose up -d --force-recreate backend
 
 The controller uses real Responses API function calls, strict schemas, validated arguments, sequential tools, 25-second provider timeouts, one SDK retry, at most eight provider invocations and a 90-second loop deadline checked between invocations. A single in-flight timeout/retry can exceed that deadline. There are no shell, URL-fetch or raw-Cypher tools. Run one cycle for a bounded smoke test. Trace summaries are not model reasoning transcripts. Provider errors are recorded by type without copying credential-bearing response bodies.
 
-**Live-model execution has not been verified in the supplied environment:** no OpenAI key/model was configured. Stubbed protocol tests validate the adapter but do not establish live execution. Provider usage is billable when you enable it. The connected GitHub account is independent of OpenAI API credentials.
+**Verification distinction:** live model/tool execution through signed-in Codex is verified. The API-key Responses adapter has protocol/failure tests but no live API-key smoke test. Enabling API-key mode uses API billing. The GitHub connection is independent of either model authentication mode.
 
 ## Manual development, including PowerShell
 
@@ -127,7 +144,9 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Backend tests require the real database on localhost:6380 and fail when it is absent. Browser tests require the API and Vite development server running. They save screenshots under `docs/screenshots/`. They create isolated runs and do not reset unrelated runs. The evaluator creates separate graph/run IDs for each policy and seed, never changes a user's selected run, and writes `benchmarks/results.json` and `benchmarks/results.csv`. Default suite: ten worlds × three policies. Seeds, policies, fingerprints, all outcomes and regressions are published. Seeds exist only in evaluator output and run-creation input, not live controller context.
+Backend tests require the real database on localhost:6380 and fail when it is absent. Browser tests require the API and either the Compose frontend or Vite development server running. They save screenshots under `docs/screenshots/`. They create isolated runs and do not reset unrelated runs. The evaluator creates separate graph/run IDs for each policy and seed, never changes a user's selected run, and writes `benchmarks/results.json` and `benchmarks/results.csv`. Default suite: ten worlds × three policies. Seeds, policies, fingerprints, all outcomes and regressions are published. Seeds exist only in evaluator output and run-creation input, not live controller context.
+
+Live Codex checks are explicit opt-ins and are skipped in ordinary CI. After starting the connection, run `python scripts/smoke_codex.py` for one bounded live world, or `$env:RUN_CODEX_LIVE='1'; npx playwright test codex-live` from `frontend` to exercise the actual browser cycle. These consume the signed-in account's allowance. The live smoke result is separate from the deterministic 30-run comparison.
 
 To reproduce inside Docker:
 

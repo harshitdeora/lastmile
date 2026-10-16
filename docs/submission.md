@@ -14,7 +14,7 @@
 
 Relief coordination involves choosing what to verify as well as what to deliver. LastMile explores that decision in a synthetic flood-affected town. It investigates conflicting road evidence, scores inspections by expected constrained delivery utility, records observations in a persistent graph, reserves stock and vehicles, and recovers from disruptions.
 
-FalkorDB is central: observed roads, reports, requests, plans, assignments, reservations and decisions live in the graph. Real multi-hop path queries produce valid route alternatives; relationship queries trace evidence to operational consequences. Without FalkorDB, operational mutations fail explicitly. OR-Tools chooses compatible deliveries, while an optional tool-calling LLM orchestrates validated backend actions. A visibly labelled deterministic controller makes the demonstration reproducible without paid credentials.
+FalkorDB is central: observed roads, reports, requests, plans, assignments, reservations and decisions live in the graph. Real multi-hop path queries produce valid route alternatives; relationship queries trace evidence to operational consequences. Without FalkorDB, operational mutations fail explicitly. OR-Tools chooses compatible deliveries, while a verified live Codex controller orchestrates validated backend actions using the participant's existing local sign-in. It completed six deliveries / 42 kits through real model-selected tools. A visibly labelled deterministic controller makes the comparison reproducible without model credentials. A separate API-key adapter is also included.
 
 ## Evaluation
 

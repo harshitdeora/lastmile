@@ -4,7 +4,8 @@ from threading import Lock, Thread
 from uuid import uuid4
 import json
 import os
-from fastapi import FastAPI, Request
+import hmac
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
@@ -12,7 +13,8 @@ from .domain import Model
 from .graph import GraphUnavailable, Conflict
 from .service import Operations
 from .scenarios import CATALOGUE
-from .agents import llm_cycle
+from .agents import llm_cycle, dispatch
+from .codex_controller import codex_ready, codex_cycle
 from .lease import acquire_process_lease
 from .evaluation import benchmark, RESULT_DIR
 from .agents import tool_definitions
@@ -103,11 +105,20 @@ class Cycle(Model):
 @app.get("/api/health")
 def health():
     ops.store.health()
+    codex = codex_ready()
+    api_key = bool(os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_MODEL"))
     return dict(
         backend="healthy",
         database="FalkorDB · GRAPH.QUERY available",
         frontend="served separately",
-        llm_configured=bool(os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_MODEL")),
+        llm_configured=codex or api_key,
+        codex_configured=codex,
+        api_key_configured=api_key,
+        llm_provider=(
+            "openai"
+            if api_key and os.getenv("LLM_PROVIDER") == "openai"
+            else "codex" if codex else "openai" if api_key else None
+        ),
         single_worker=True,
     )
 
@@ -184,9 +195,28 @@ def cycle(run_id: str, body: Cycle):
             return ops.deterministic_cycle(run_id)
         if body.mode == "llm":
             return llm_cycle(ops, run_id)
+        if body.mode == "codex":
+            return codex_cycle(ops, run_id)
         raise ValueError("Unknown controller mode")
     finally:
         controller_lock.release()
+
+
+class CodexToolCall(Model):
+    name: str
+    arguments: dict
+    call_id: str = Field(min_length=1, max_length=120)
+
+
+@app.post("/api/internal/codex/{run_id}/tool", include_in_schema=False)
+def codex_tool(run_id: str, body: CodexToolCall, request: Request):
+    token = os.getenv("CODEX_BRIDGE_TOKEN", "")
+    supplied = request.headers.get("Authorization", "")
+    if not token or not hmac.compare_digest(supplied, "Bearer " + token):
+        raise HTTPException(
+            status_code=403, detail="Authenticated local Codex bridge required"
+        )
+    return dispatch(ops, run_id, body.name, body.arguments, "codex-" + body.call_id)
 
 
 @app.get("/api/runs/{run_id}/events")

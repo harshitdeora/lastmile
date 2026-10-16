@@ -66,7 +66,7 @@ def tool_definitions():
     ]
 
 
-def _dispatch(ops, run_id, name, raw):
+def _dispatch(ops, run_id, name, raw, idempotency_key=None):
     if name not in ARGUMENTS:
         raise ValueError("Tool not allowed")
     args = ARGUMENTS[name].model_validate(raw)
@@ -81,21 +81,46 @@ def _dispatch(ops, run_id, name, raw):
     if name == "rank_inspections":
         return ops.rank(run_id)
     if name == "inspect_road":
-        return ops.inspect(run_id, args.road, uuid4().hex)
+        return ops.inspect(run_id, args.road, idempotency_key or uuid4().hex)
     if name == "propose_delivery_plan":
         return ops.preview(run_id)
     if name == "commit_delivery_plan":
-        return ops.commit(run_id, args.plan_id, args.expected_revision, uuid4().hex)
+        return ops.commit(
+            run_id, args.plan_id, args.expected_revision, idempotency_key or uuid4().hex
+        )
     if name == "advance_simulation":
-        return ops.advance(run_id, args.minutes, uuid4().hex)
+        return ops.advance(run_id, args.minutes, idempotency_key or uuid4().hex)
     if name == "get_decision_evidence":
         return ops.evidence(run_id, args.decision)
 
 
-def dispatch(ops, run_id, name, raw):
-    result = _dispatch(ops, run_id, name, raw)
+def dispatch(ops, run_id, name, raw, idempotency_key=None):
+    result = _dispatch(ops, run_id, name, raw, idempotency_key)
     OUTPUTS[name].model_validate(result)
     return result
+
+
+def evidence_from_calls(calls):
+    """Collect actual returned evidence, including the existing plans being continued."""
+    evidence = set()
+    for call in calls:
+        result = call.get("result", {})
+        args = call.get("arguments", {})
+        for value in (
+            args.get("road"),
+            result.get("inspection", {}).get("id"),
+            result.get("plan", {}).get("id"),
+        ):
+            if value:
+                evidence.add(value)
+        for candidate in result.get("candidates", []):
+            evidence.update(candidate.get("evidence_ids", []))
+        for assignment in result.get("assignments", []):
+            if assignment.get("state") in ("reserved", "in_transit", "blocked"):
+                evidence.update([assignment["id"], assignment["plan"]])
+        for request in result.get("requests", []):
+            evidence.add(request["id"])
+    return evidence
 
 
 def llm_cycle(ops, run_id, client=None, model=None):
@@ -200,6 +225,7 @@ def llm_cycle(ops, run_id, client=None, model=None):
             "error_type": error,
         }
     )
+    evidence.update(evidence_from_calls(calls))
     if evidence:
         summary += " Evidence: " + ", ".join(sorted(evidence)) + "."
     ops.record_controller(run_id, "LLM agent", summary, sorted(evidence), calls)

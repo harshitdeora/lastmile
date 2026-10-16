@@ -20,7 +20,7 @@
 - Docker Desktop 29.2.1 and FalkorDB 4.16.0 verified. Owned service ports: 5173, 8000, 6380, all localhost-bound.
 
 ## Verification
-- 24 real-database backend tests passed; production frontend build passed locally and in Docker.
+- 29 real-database backend tests passed; production frontend build passed locally and in Docker.
 - Chromium journey passed at desktop and 390-pixel viewport; screenshots saved.
 - Real Docker backend restart, DB outage/503, DB restart and private checkpoint continuation passed.
 - 30-run suite completed: mean delivered utility 27.2 / 30.4 / 72.0 for none / random / graph value. All rows and ties/regressions retained.
@@ -28,8 +28,10 @@
 - Full 30-run suite repeated inside Linux Docker with identical per-world utilities; final output exported to benchmarks/.
 - Source, screenshots, documentation and CI pushed to public origin/main; GitHub metadata and remote commit verified.
 - Patched Vite/Playwright after concrete installer advisories; final npm audit reports zero vulnerabilities.
+- Connected existing signed-in Codex through the official app-server, without extracting its credentials.
+- Actual gpt-6.1-sol tool orchestration and live browser cycle passed; four live cycles delivered 42 kits / six requests on time. Evidence: docs/live-codex-smoke.json.
 
 ## Remaining limits / participant steps
-- Live provider smoke test unavailable without OPENAI_API_KEY and OPENAI_MODEL; stubbed adapter tests are not live evidence.
+- Live Codex sign-in mode is verified and available. The separate API-key adapter still needs OPENAI_API_KEY/OPENAI_MODEL for its own provider smoke test.
 - Participant must review, understand and meaningfully contribute, record the demo video and submit. No external deployment or video claimed.
 - GitHub Actions is configured; remote workflow status is visible in the repository Actions tab.

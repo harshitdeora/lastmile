@@ -41,3 +41,9 @@ World generation uses `Random(seed)` once to build an immutable private checkpoi
 Run time, observations, budget, resource commitments, event sequence and idempotency receipts persist in FalkorDB. The private file does not need updating as time advances. Restart reloads both stores instead of generating new truth. Missing private checkpoint is an error for time-consuming physical actions. An orphan checkpoint after a failed initial graph write is harmless and never becomes a public run.
 
 Replay reads committed graph snapshots, marks historical time explicitly and disables mutation controls. It cannot rewind simulator truth or operational state. A new run gets a new graph; explicit selected-run reset removes only that graph/checkpoint and creates a replacement.
+
+## Live Codex connection
+
+The local host bridge runs official `codex app-server` with Codex-managed ChatGPT authentication. The application never reads the Codex credential file or exports its access/refresh tokens. Each cycle uses an ephemeral model session, no environment access, and only eight registered LastMile dynamic tools. Shell, browser, connected apps, plugins and multi-agent tools are disabled. The bridge is a controller client, not another graph writer: every tool runs through an authenticated callback into the existing single API worker, using the same Pydantic schemas, mutation lock and idempotency receipts. Callback identifiers are stable for retries.
+
+The bridge is bounded to 12 tools and 100 seconds. A failed/interrupted model turn is recorded as a failure; it is never presented as a completed live turn. Already committed application actions remain in FalkorDB. Successful decisions link to evidence IDs returned by the tools, including any committed plan being continued. The live smoke report is an actual separate run, not part of the deterministic policy benchmark.
