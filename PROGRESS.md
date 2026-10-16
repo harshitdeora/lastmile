@@ -27,6 +27,7 @@
 - Exact commands and acceptance mapping: docs/verification.md.
 - Full 30-run suite repeated inside Linux Docker with identical per-world utilities; final output exported to benchmarks/.
 - Source, screenshots, documentation and CI pushed to public origin/main; GitHub metadata and remote commit verified.
+- Patched Vite/Playwright after concrete installer advisories; final npm audit reports zero vulnerabilities.
 
 ## Remaining limits / participant steps
 - Live provider smoke test unavailable without OPENAI_API_KEY and OPENAI_MODEL; stubbed adapter tests are not live evidence.

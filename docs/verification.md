@@ -13,6 +13,7 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m pytest backend\tests -q` | **24 passed** in 69.67 seconds. One upstream Starlette/AnyIO deprecation warning; no failed checks. |
 | `npm install --no-audit --no-fund` in `frontend` | Installed pinned packages and generated package-lock.json. |
 | `npm run build` in `frontend` | TypeScript and Vite production build passed. |
+| `npm install --save-dev --save-exact vite@6.4.4 @playwright/test@1.64.1` then `npm audit --audit-level=low` | Patched the development-tool advisories discovered during container installation; **0 npm vulnerabilities** in the final lockfile. Production builds repeated successfully. |
 | `npx playwright install chromium` in `frontend` | Installed actual Chromium for browser verification. |
 | `npm run test:browser` in `frontend` | Actual load → investigate → inspect → preview → commit → execute → explain → replay journey passed; screenshots saved. Repeated against the production Compose UI. |
 | `$env:PYTHONPATH='backend'; .venv\Scripts\python.exe -m app.evaluation` | Completed 30 real-graph runs, generated actual JSON/CSV; deterministic policies only. |
@@ -24,6 +25,8 @@ Verified on Windows on October 16, 2026. No external deployment or live LLM exec
 | `docker exec lastmile-falkordb-1 redis-cli INFO modules` | Confirmed graph module version 41600. |
 
 An initial build found a CSS import issue and was fixed before the passing production builds. A degraded-state test exposed eager database connection during construction; the client now connects lazily so the API can return a structured 503. A graph-ID check led to separate `stock-d*` IDs for physical stock nodes. A recovery test was corrected to isolate the loaded vehicle because the unrestricted solver could legitimately choose a nearer fresh vehicle. A temporary Docker networking failure after a port was released was resolved by recreating the owned backend container; all final services and checks passed. These early failures are not counted as passes.
+
+The final npm pins are Vite 6.4.4 and Playwright 1.64.1. See the upstream [Vite advisory](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) and [Playwright advisory](https://github.com/advisories/GHSA-7mvr-c777-76hp). The audit result is specifically for the frontend npm dependency tree, not a comprehensive security audit of the application or Python environment.
 
 ## Acceptance coverage
 
