@@ -1,0 +1,49 @@
+name: lastmile
+services:
+  falkordb:
+    image: falkordb/falkordb:v4.16.0@sha256:f8a0e805259cf6887445d8c2cb55da722219cc3cd3202cbb4c49115fc71e144b
+    environment:
+      REDIS_ARGS: "--dir /var/lib/falkordb/data --appendonly yes --appendfsync everysec --save 60 1"
+    volumes:
+      - graph_data:/var/lib/falkordb/data
+    ports:
+      - "127.0.0.1:${FALKOR_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      FALKOR_HOST: falkordb
+      FALKOR_PORT: 6379
+      PRIVATE_STATE_DIR: /private
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+    volumes:
+      - simulator_data:/private
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  graph_data:
+  simulator_data:
